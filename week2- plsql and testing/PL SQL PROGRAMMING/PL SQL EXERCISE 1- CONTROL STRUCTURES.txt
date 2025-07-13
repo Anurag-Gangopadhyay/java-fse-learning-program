@@ -1,0 +1,47 @@
+//pl sql exercise 1- control structures
+
+//Scenario 1: Apply 1% discount to interest rate for customers over 60
+BEGIN
+  FOR cust_rec IN (SELECT CUSTOMER_ID, LOAN_INTEREST_RATE 
+                   FROM CUSTOMERS
+                   WHERE AGE > 60) 
+  LOOP
+    UPDATE CUSTOMERS
+    SET LOAN_INTEREST_RATE = LOAN_INTEREST_RATE - 1
+    WHERE CUSTOMER_ID = cust_rec.CUSTOMER_ID;
+  END LOOP;
+
+  COMMIT;
+END;
+/
+
+//Scenario 2: Promote to VIP if balance > $10,000
+BEGIN
+  FOR cust_rec IN (SELECT CUSTOMER_ID 
+                   FROM CUSTOMERS
+                   WHERE BALANCE > 10000)
+  LOOP
+    UPDATE CUSTOMERS
+    SET ISVIP = 'T'
+    WHERE CUSTOMER_ID = cust_rec.CUSTOMER_ID;
+  END LOOP;
+
+  COMMIT;
+END;
+/
+
+//Scenario 3: Send reminders for loans due in next 30 days
+DECLARE
+  CURSOR due_loans IS
+    SELECT LOAN_ID, CUSTOMER_ID, DUE_DATE
+    FROM LOANS
+    WHERE DUE_DATE <= SYSDATE + 30;
+
+BEGIN
+  FOR loan_rec IN due_loans LOOP
+    DBMS_OUTPUT.PUT_LINE('Reminder: Loan ID ' || loan_rec.LOAN_ID ||
+                         ' for Customer ' || loan_rec.CUSTOMER_ID ||
+                         ' is due on ' || TO_CHAR(loan_rec.DUE_DATE, 'DD-MON-YYYY'));
+  END LOOP;
+END;
+/

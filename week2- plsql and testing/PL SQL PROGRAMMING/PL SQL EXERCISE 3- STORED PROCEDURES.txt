@@ -1,0 +1,62 @@
+//pl sql exercise 3- stored procedures
+
+//Scenario 1: Process Monthly Interest for Savings Accounts
+
+CREATE OR REPLACE PROCEDURE ProcessMonthlyInterest AS
+BEGIN
+
+  UPDATE ACCOUNTS
+  SET BALANCE = BALANCE + (BALANCE * 0.01)
+  WHERE ACCOUNT_TYPE = 'SAVINGS';
+
+  COMMIT;
+END ProcessMonthlyInterest;
+/
+
+
+//Scenario 2: Bonus Scheme for Employees Based on Department
+
+CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus (
+  p_department_id IN EMPLOYEES.DEPARTMENT_ID%TYPE,
+  p_bonus_percent IN NUMBER
+) AS
+BEGIN
+  UPDATE EMPLOYEES
+  SET SALARY = SALARY + (SALARY * p_bonus_percent / 100)
+  WHERE DEPARTMENT_ID = p_department_id;
+
+  COMMIT;
+END UpdateEmployeeBonus;
+/
+
+
+//Scenario 3: Transfer Funds Between Accounts
+
+CREATE OR REPLACE PROCEDURE TransferFunds (
+  p_from_account IN ACCOUNTS.ACCOUNT_ID%TYPE,
+  p_to_account IN ACCOUNTS.ACCOUNT_ID%TYPE,
+  p_amount IN NUMBER
+) AS
+  v_from_balance ACCOUNTS.BALANCE%TYPE;
+BEGIN
+  SELECT BALANCE INTO v_from_balance
+  FROM ACCOUNTS
+  WHERE ACCOUNT_ID = p_from_account
+  FOR UPDATE;
+
+  IF v_from_balance < p_amount THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Insufficient balance in source account.');
+  END IF;
+
+  UPDATE ACCOUNTS
+  SET BALANCE = BALANCE - p_amount
+  WHERE ACCOUNT_ID = p_from_account;
+
+
+  UPDATE ACCOUNTS
+  SET BALANCE = BALANCE + p_amount
+  WHERE ACCOUNT_ID = p_to_account;
+
+  COMMIT;
+END TransferFunds;
+/
